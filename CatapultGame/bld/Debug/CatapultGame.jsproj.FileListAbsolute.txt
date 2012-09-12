@@ -1,0 +1,13 @@
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bin\Debug\resources.pri
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bin\Debug\AppxManifest.xml
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bin\Debug\CatapultGame.build.appxrecipe
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\priconfig.xml.intermediate
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\layout.resfiles.intermediate
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\resources.resfiles.intermediate
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\pri.resfiles.intermediate
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\priconfig.xml
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\layout.resfiles
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\resources.resfiles
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\pri.resfiles
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\LanguageQualifiers.txt
+C:\Data\Dropbox\Apps\CatapultGame\CatapultGame\bld\Debug\ProjectArchitectures.txt
