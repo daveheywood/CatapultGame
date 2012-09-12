@@ -30,6 +30,17 @@
     var MAX_SHOT_POWER = 10;
     var GRAVITY = 0.07;
 
+    var isAiming = false;
+    var aimPower = 1;
+    var aimStart, aimVector;
+
+    var FIRE_SOUND_FILE = "/sounds/CatapultFire.wav";
+    var HIT_SOUND_FILE = "/sounds/BoulderHit.wav";
+    var EXPLODE_SOUND_FILE = "/sounds/CatapultExplosion.wav";
+    var LOSE_SOUND_FILE = "/sounds/Lose.wav";
+    var AIM_SOUND_FILE = "/sounds/RopeStretch.wav";
+    var WIN_SOUND_FILE = "/sounds/Win.wav";
+
 
     app.onactivated = function (args) {
         if (args.detail.kind === activation.ActivationKind.launch) {
@@ -50,6 +61,10 @@
         canvas.height = window.innerHeight;
         context = canvas.getContext("2d");
 
+        canvas.addEventListener("MSPointerUp", endAim, false);
+        canvas.addEventListener("MSPointerMove", adjustAim, false);
+        canvas.addEventListener("MSPointerDown", beginAim,false)
+
         stage = new Stage(canvas);
 
         // use preloadJS to get sounds and images loaded before starting
@@ -61,10 +76,16 @@
         { id: "redImage", src: "images/Catapults/Red/redIdle/redIdle.png" },
         { id: "blueImage", src: "images/Catapults/Blue/blueIdle/blueIdle.png" },
         { id: "ammoImage", src: "images/Ammo/rock_ammo.png" },
-        { id: "winImage", src: "images/Backgrounds/victory" },
+        { id: "winImage", src: "images/Backgrounds/victory.png" },
         { id: "loseImage", src: "images/Backgrounds/defeat.png" },
         { id: "blueFire", src: "images/Catapults/Blue/blueFire/blueCatapultFire.png" },
-        { id: "redFire", src: "images/Catapults/Red/redFire/redCatapultFire.png" }
+        { id: "redFire", src: "images/Catapults/Red/redFire/redCatapultFire.png" },
+        { id: "hitSound", src: HIT_SOUND_FILE },
+        { id: "explodeSound", src: EXPLODE_SOUND_FILE },
+        { id: "fireSound", src: FIRE_SOUND_FILE },
+        { id: "loseSound", src: LOSE_SOUND_FILE },
+        { id: "aimSound", src: AIM_SOUND_FILE },
+        { id: "winSound", src: WIN_SOUND_FILE }
         ];
         preload.loadManifest(manifest);
     }
@@ -182,15 +203,20 @@
             }
 
         }
+            // No current shot, should either player fire ?
         else if (playerTurn == 1)
         {
-            // TEMP - for now, player automatically fires (randomly)
-            ammoBitmap.x = p1Bitmap.x + (p1Bitmap.image.width * SCALE_X / 2);
-            ammoBitmap.y = p1Bitmap.y;
-            shotVelocity = new Point(
-                Math.random() * (4 * SCALE_X) + 3,
-                Math.random() * (-3 * SCALE_Y) - 1);
-            fireShot();
+            // does the player want to fire ?
+            if (playerFire)
+            {
+                playerFire = false;
+                ammoBitmap.x = p1Bitmap.x + (p1Bitmap.image.width * SCALE_X / 2);
+                ammoBitmap.y = p1Bitmap.y;
+                shotVelocity = aimVector;
+                 fireShot();
+
+
+            }
         }
         else if (playerTurn == 2)
         {
@@ -204,6 +230,59 @@
         }
   
     }
+
+    // triggered by MSPointerDown event
+    function beginAim(event)
+    {
+        if (playerTurn == 1)
+        {
+            if (!isAiming)
+            {
+                aimStart = new Point(event.x, event.y);
+                isAiming = true;
+            }
+        }
+    }
+
+
+    // triggered by MSPointerMove event
+    function adjustAim(event)
+    {
+        if (isAiming)
+        {
+            var aimCurrent = new Point(event.x, event.y);
+            aimVector = calculateAim(aimStart, aimCurrent);
+            // TODO write text and/or show aiming arrow on screen
+            Debug.writeln("Aiming..." + aimVector.x + "/" + aimVector.y);
+        }
+    }
+
+    // triggered by MSPointerUp event
+    function endAim(event)
+    {
+        if (isAiming) {
+            isAiming = false;
+            var aimCurrent = new Point(event.x, event.y);
+            aimVector = calculateAim(aimStart, aimCurrent);
+            playerFire = true;
+        }
+    }
+
+    function calculateAim(start, end)
+    {
+        // this only works for player 1
+        var aim = new Point(
+            (end.x - start.x) / 80,
+            (end.y - start.y) / 80);
+        aim.x = Math.min(MAX_SHOT_POWER, aim.x); // cap velocity
+        aim.x = Math.max(0, aim.x); // fire forward only
+        aim.y = Math.max(-MAX_SHOT_POWER, aim.y);/// cap velocity
+        aim.y = Math.min(0, aim.y); // fire up only
+        return aim;
+
+    }
+
+
 
     function checkHit(target)
     {
@@ -224,12 +303,14 @@
 
     function fireShot()
     {
+        playSound(FIRE_SOUND_FILE);
         ammoBitmap.visible = true;
         isShotFlying = true;
     }
 
     function processHit()
     {
+        playSound(EXPLODE_SOUND_FILE);
         isShotFlying = false; // stop shot
         ammoBitmap.visible = false; // hide shot
         playerTurn = playerTurn % 2 + 1; // change player
@@ -247,11 +328,14 @@
         var endGameImage;
         if (player1Lives <= 0)
         {
+            playSound(LOSE_SOUND_FILE);
             endGameImage = preload.getResult("loseImage").result;
+
         }
         else if (player2Lives <= 0)
         {
             endGameImage = preload.getResult("winImage").result;
+            playSound(WIN_SOUND_FILE);
         }
         var endGameBitmap = new Bitmap(endGameImage);
         stage.addChild(endGameBitmap);
@@ -265,6 +349,13 @@
     function draw() {
         // EaselJS allows for easy updates
         stage.update();
+    }
+
+    function playSound(path)
+    {
+        var sound = document.createElement("audio");
+        sound.src = path;
+        sound.autoplay = true;
     }
 
     app.oncheckpoint = function (args) {
